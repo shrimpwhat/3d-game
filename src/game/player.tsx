@@ -2,10 +2,13 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { useKeyboardControls } from "@react-three/drei";
+import { Vector3 } from "three";
+import { usePlayer } from "./context/playerContext";
 
 function Player() {
   const ref = useRef<RapierRigidBody>(null);
   const [_, getKeys] = useKeyboardControls();
+  const { setPlayerPosition } = usePlayer();
 
   useFrame(() => {
     const { forward, back, left, right } = getKeys();
@@ -29,6 +32,10 @@ function Player() {
         { x: velocity.x * 5, y: 0, z: velocity.z * 5 },
         true
       );
+
+      // Update player position in context for camera
+      const position = ref.current.translation();
+      setPlayerPosition(new Vector3(position.x, position.y, position.z));
     }
   });
 
