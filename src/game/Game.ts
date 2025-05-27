@@ -1,0 +1,176 @@
+import * as THREE from "three";
+import RAPIER from "@dimforge/rapier3d-compat";
+import { Player } from "./entities/Player";
+import { Camera } from "./camera/ThirdPersonCamera";
+import { InputManager } from "./input/InputManager";
+
+export class Game {
+  private scene: THREE.Scene;
+  private renderer: THREE.WebGLRenderer;
+  private camera: Camera;
+  private world: RAPIER.World | null = null;
+  private player: Player | null = null;
+  private inputManager: InputManager;
+  private clock: THREE.Clock;
+  private isRunning: boolean = false;
+  private isInitialized: boolean = false;
+  private initializationPromise: Promise<void>;
+
+  constructor(canvas: HTMLCanvasElement) {
+    // Initialize Three.js
+    this.scene = new THREE.Scene();
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+    });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setClearColor(0x87ceeb, 1); // Sky blue
+
+    // Initialize input manager
+    this.inputManager = new InputManager(); // Initialize clock
+    this.clock = new THREE.Clock();
+
+    // Initialize camera
+    this.camera = new Camera(this.renderer.domElement);
+
+    // Set up basic scene immediately (without physics)
+    this.setupBasicScene();
+
+    // Handle window resize
+    window.addEventListener("resize", this.onWindowResize.bind(this));
+
+    // Initialize Rapier and the rest of the game
+    this.initializationPromise = this.initializePhysics();
+  }
+
+  private setupBasicScene(): void {
+    // Create ground (visual only, no physics yet)
+    const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    this.scene.add(ground);
+
+    // Create grid helper
+    const gridHelper = new THREE.GridHelper(200, 200, 0x9d4b4b, 0x9d4b4b);
+    gridHelper.position.y = 0.1;
+    this.scene.add(gridHelper);
+
+    // Set up lighting immediately
+    this.setupLighting();
+  }
+
+  public async waitForInitialization(): Promise<void> {
+    return this.initializationPromise;
+  }
+  private async initializePhysics(): Promise<void> {
+    try {
+      console.log("Initializing RAPIER physics engine...");
+
+      // Initialize Rapier physics
+      await RAPIER.init();
+      console.log("RAPIER initialized successfully");
+
+      // Initialize physics world
+      this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
+      console.log("Physics world created");
+
+      // Initialize player
+      this.player = new Player(this.world, this.scene);
+      console.log("Player created");
+
+      // Set up physics components
+      this.setupScene();
+      console.log("Scene physics setup complete");
+
+      this.isInitialized = true;
+      console.log("Game initialization complete!");
+    } catch (error) {
+      console.error("Failed to initialize physics:", error);
+      throw error; // Re-throw to be caught by the GameCanvas
+    }
+  }
+  private setupScene(): void {
+    if (!this.world) return;
+
+    // Create physics ground (visual ground already exists)
+    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(1000, 0.1, 1000);
+    const groundCollider = this.world.createCollider(groundColliderDesc);
+    groundCollider.setTranslation(new RAPIER.Vector3(0, -0.1, 0));
+  }
+
+  private setupLighting(): void {
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    this.scene.add(ambientLight);
+
+    // Directional light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(10, 10, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 5000;
+    directionalLight.shadow.camera.left = -50;
+    directionalLight.shadow.camera.right = 50;
+    directionalLight.shadow.camera.top = 50;
+    directionalLight.shadow.camera.bottom = -50;
+    this.scene.add(directionalLight);
+  }
+
+  private onWindowResize(): void {
+    this.camera.threeCamera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.threeCamera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  public start(): void {
+    this.isRunning = true;
+    this.gameLoop();
+  }
+  public stop(): void {
+    this.isRunning = false;
+  }
+
+  private gameLoop(): void {
+    if (!this.isRunning) return;
+
+    requestAnimationFrame(() => this.gameLoop());
+
+    const deltaTime = this.clock.getDelta();
+
+    // Always render the scene, even if not fully initialized
+    if (this.isInitialized && this.world && this.player) {
+      // Update physics
+      this.world.step();
+
+      // Update player
+      this.player.update(deltaTime, this.inputManager.getInputState());
+
+      // Update camera
+      this.camera.update(deltaTime, this.player.getPosition());
+    } else {
+      // If not initialized, just update camera with default position
+      this.camera.update(deltaTime, new THREE.Vector3(0, 0, 0));
+    }
+
+    // Always render
+    this.renderer.render(this.scene, this.camera.threeCamera);
+  }
+
+  public dispose(): void {
+    this.stop();
+    this.inputManager.dispose();
+    this.camera.dispose();
+    if (this.world) {
+      this.world.free();
+    }
+    window.removeEventListener("resize", this.onWindowResize.bind(this));
+  }
+}
