@@ -130,18 +130,21 @@ export class Game {
 
     requestAnimationFrame(() => this.gameLoop());
 
-    const deltaTime = this.clock.getDelta();
-
-    // Always render the scene, even if not fully initialized
+    const deltaTime = this.clock.getDelta(); // Always render the scene, even if not fully initialized
     if (this.isInitialized && this.world && this.player) {
       // Update physics
       this.world.step();
 
-      // Update player
-      this.player.update(deltaTime, this.inputManager.getInputState());
-
-      // Update camera
+      // Update camera first to get current direction
       this.camera.update(deltaTime, this.player.getPosition());
+
+      // Update player with camera direction for relative movement
+      const cameraDirection = this.camera.getForwardDirection();
+      this.player.update(
+        deltaTime,
+        this.inputManager.getInputState(),
+        cameraDirection
+      );
     } else {
       // If not initialized, just update camera with default position
       this.camera.update(deltaTime, new THREE.Vector3(0, 0, 0));

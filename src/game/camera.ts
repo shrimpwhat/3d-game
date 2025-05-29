@@ -123,7 +123,6 @@ export class Camera {
   private requestPointerLock(): void {
     this.domElement.requestPointerLock();
   }
-
   public update(_deltaTime: number, playerPosition: THREE.Vector3): void {
     const { radius, phi, theta } = this.cameraState.spherical;
 
@@ -150,6 +149,13 @@ export class Camera {
 
     // Update camera matrix
     this.threeCamera.updateMatrixWorld();
+  }
+
+  public getForwardDirection(): THREE.Vector3 {
+    // Get the direction the camera is looking at
+    const direction = new THREE.Vector3();
+    this.threeCamera.getWorldDirection(direction);
+    return direction;
   }
 
   public dispose(): void {
