@@ -1,11 +1,49 @@
-import GameCanvas from "./GameCanvas";
+import React, { useCallback, useEffect, useRef, useState, memo } from "react";
+import { Game } from "./Game";
 
-function Game() {
+const GameCanvas: React.FC = memo(() => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameRef = useRef<Game | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const initializeGame = useCallback(async () => {
+    try {
+      if (!canvasRef.current) {
+        throw new Error("Canvas ref is null");
+      }
+
+      console.log(123);
+      gameRef.current = new Game(canvasRef.current);
+      gameRef.current.start();
+      setIsLoading(false);
+
+      await gameRef.current.waitForInitialization();
+    } catch (err) {
+      console.error("Failed to initialize game:", err);
+      setError(err instanceof Error ? err.message : "Unknown error");
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    initializeGame();
+
+    return () => {
+      if (gameRef.current) {
+        gameRef.current.dispose();
+        gameRef.current = null;
+      }
+    };
+  }, [initializeGame]);
+
   return (
-    <div style={{ margin: 0, padding: 0, overflow: "hidden" }}>
-      <GameCanvas />
-    </div>
+    <>
+      {isLoading && <div className="info loading">Loading game...</div>}
+      {error && <div className="info error">Error: {error}</div>}
+      <canvas ref={canvasRef} />
+    </>
   );
-}
+});
 
-export default Game;
+export default GameCanvas;

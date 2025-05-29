@@ -3,8 +3,8 @@ import * as THREE from "three";
 interface CameraState {
   spherical: {
     radius: number;
-    phi: number; // vertical angle (polar)
-    theta: number; // horizontal angle (azimuth)
+    phi: number;
+    theta: number;
   };
   mouseSensitivity: number;
 }
@@ -23,21 +23,19 @@ export class Camera {
     mouseSensitivity: 0.002,
   };
 
-  // Camera constraints
   private readonly minPolarAngle = 0.1;
   private readonly maxPolarAngle = Math.PI * 0.9;
   private readonly smoothingFactor = 0.15;
   private readonly minZoom = 3;
   private readonly maxZoom = 20;
   private readonly zoomSpeed = 0.5;
-  // Temporary vectors for calculations
+
   private tempVector = new THREE.Vector3();
   private lookAtTarget = new THREE.Vector3();
 
   constructor(domElement: HTMLElement) {
     this.domElement = domElement;
 
-    // Initialize camera
     this.threeCamera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -50,7 +48,6 @@ export class Camera {
   }
 
   private setupEventListeners(): void {
-    // Pointer lock event listeners
     document.addEventListener(
       "pointerlockchange",
       this.onPointerLockChange.bind(this)
@@ -60,21 +57,17 @@ export class Camera {
       this.onPointerLockError.bind(this)
     );
 
-    // Mouse movement
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
 
-    // Mouse wheel for zoom
     this.domElement.addEventListener("wheel", this.onWheel.bind(this), {
       passive: false,
     });
 
-    // Click to request pointer lock
     this.domElement.addEventListener(
       "click",
       this.requestPointerLock.bind(this)
     );
 
-    // ESC to exit pointer lock
     document.addEventListener("keydown", this.onKeyDown.bind(this));
   }
 
@@ -97,13 +90,11 @@ export class Camera {
 
     const { movementX, movementY } = event;
 
-    // Update spherical coordinates based on mouse movement
-    this.cameraState.spherical.theta -=
+    this.cameraState.spherical.theta +=
       movementX * this.cameraState.mouseSensitivity;
-    this.cameraState.spherical.phi +=
+    this.cameraState.spherical.phi -=
       movementY * this.cameraState.mouseSensitivity;
 
-    // Constrain phi (vertical angle)
     this.cameraState.spherical.phi = THREE.MathUtils.clamp(
       this.cameraState.spherical.phi,
       this.minPolarAngle,

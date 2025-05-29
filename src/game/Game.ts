@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./entities/Player";
-import { Camera } from "./camera/ThirdPersonCamera";
+import { Camera } from "./camera";
 import { InputManager } from "./input/InputManager";
 
 export class Game {
@@ -58,7 +58,7 @@ export class Game {
 
     // Create grid helper
     const gridHelper = new THREE.GridHelper(200, 200, 0x9d4b4b, 0x9d4b4b);
-    gridHelper.position.y = 0.1;
+    gridHelper.position.y = 0.01;
     this.scene.add(gridHelper);
 
     // Set up lighting immediately
@@ -68,31 +68,18 @@ export class Game {
   public async waitForInitialization(): Promise<void> {
     return this.initializationPromise;
   }
+
   private async initializePhysics(): Promise<void> {
     try {
-      console.log("Initializing RAPIER physics engine...");
-
-      // Initialize Rapier physics
       await RAPIER.init();
-      console.log("RAPIER initialized successfully");
-
-      // Initialize physics world
       this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
-      console.log("Physics world created");
-
-      // Initialize player
       this.player = new Player(this.world, this.scene);
-      console.log("Player created");
-
-      // Set up physics components
       this.setupScene();
-      console.log("Scene physics setup complete");
 
       this.isInitialized = true;
-      console.log("Game initialization complete!");
     } catch (error) {
       console.error("Failed to initialize physics:", error);
-      throw error; // Re-throw to be caught by the GameCanvas
+      throw error;
     }
   }
   private setupScene(): void {
