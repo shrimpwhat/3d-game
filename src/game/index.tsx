@@ -13,7 +13,6 @@ const GameCanvas: React.FC = memo(() => {
         throw new Error("Canvas ref is null");
       }
 
-      console.log(123);
       gameRef.current = new Game(canvasRef.current);
       gameRef.current.start();
       setIsLoading(false);

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { Player } from "./entities/Player";
+import { Player, Player2 } from "./entities";
 import { Camera } from "./camera";
 import { InputManager } from "./input/InputManager";
 
@@ -9,7 +9,7 @@ export class Game {
   private renderer: THREE.WebGLRenderer;
   private camera: Camera;
   private world: RAPIER.World | null = null;
-  private player: Player | null = null;
+  private player: Player2 | null = null;
   private inputManager: InputManager;
   private clock: THREE.Clock;
   private isRunning: boolean = false;
@@ -73,7 +73,8 @@ export class Game {
     try {
       await RAPIER.init();
       this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
-      this.player = new Player(this.world, this.scene);
+      // this.player = new Player(this.world, this.scene);
+      this.player = new Player2(this.world, this.scene);
       this.setupScene();
 
       this.isInitialized = true;
@@ -140,8 +141,12 @@ export class Game {
 
       // Update player with camera direction for relative movement
       const cameraDirection = this.camera.getForwardDirection();
-      this.player.update(
-        deltaTime,
+      // this.player.update(
+      //   deltaTime,
+      //   this.inputManager.getInputState(),
+      //   cameraDirection
+      // );
+      this.player.updatePlayer(
         this.inputManager.getInputState(),
         cameraDirection
       );

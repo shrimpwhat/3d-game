@@ -15,7 +15,7 @@ export class BaseEntity {
     scene.add(this.mesh);
 
     const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-    rigidBodyDesc.setTranslation(0, 0.5, 0);
+    rigidBodyDesc.setTranslation(0, 0.5, 0); // whats it?
     this.rigidBody = world.createRigidBody(rigidBodyDesc);
     const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
     world.createCollider(colliderDesc, this.rigidBody);
@@ -25,7 +25,7 @@ export class BaseEntity {
   }
 
   protected update(): void {
-    this.rotateToMovementDirection();
+    // this.rotateToMovementDirection();
     this.updateMeshTransform();
   }
 
@@ -52,7 +52,15 @@ export class BaseEntity {
     }
   }
 
-  protected setHorizontalVelocity(vx: number, vz: number): void {
+  private updateMeshTransform(): void {
+    const position = this.rigidBody.translation();
+    this.mesh.position.set(position.x, position.y, position.z);
+
+    const rotation = this.rigidBody.rotation();
+    this.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
+  }
+
+  public setHorizontalVelocity(vx: number, vz: number): void {
     const { y } = this.rigidBody.linvel();
     this.rigidBody.setLinvel(
       new RAPIER.Vector3(vx * this.speed, y, vz * this.speed),
@@ -60,15 +68,12 @@ export class BaseEntity {
     );
   }
 
-  protected setSpeed(speed: number): void {
+  public setSpeed(speed: number): void {
     this.speed = speed;
   }
 
-  private updateMeshTransform(): void {
+  public getPosition(): THREE.Vector3 {
     const position = this.rigidBody.translation();
-    this.mesh.position.set(position.x, position.y, position.z);
-
-    const rotation = this.rigidBody.rotation();
-    this.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
+    return new THREE.Vector3(position.x, position.y, position.z);
   }
 }

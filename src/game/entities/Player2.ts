@@ -3,8 +3,8 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { type InputState } from "../input/InputManager";
 import { BaseEntity } from "./BaseEntity";
 
-export class Player extends BaseEntity {
-  constructor(world: RAPIER.World, scene: THREE.Scene, speed = 5) {
+export class Player2 extends BaseEntity {
+  constructor(world: RAPIER.World, scene: THREE.Scene, speed = 50) {
     super(world, scene, speed);
   }
 
@@ -13,13 +13,7 @@ export class Player extends BaseEntity {
     cameraDirection: THREE.Vector3
   ): void {
     const inputVector = this.collectInput(inputState);
-    const worldMovement = this.calculateMovement(
-      inputVector,
-      inputState,
-      cameraDirection
-    );
-    this.applyMovement(worldMovement);
-
+    this.applyVelocity(inputVector, inputState, cameraDirection);
     super.update();
   }
 
@@ -34,52 +28,48 @@ export class Player extends BaseEntity {
     return inputVector;
   }
 
-  private calculateMovement(
+  private applyVelocity(
     inputVector: THREE.Vector3,
     inputState: InputState,
     cameraDirection?: THREE.Vector3
-  ): THREE.Vector3 {
-    const worldMovement = new THREE.Vector3(0, 0, 0);
+  ): void {
+    const velocity = new THREE.Vector3(0, 0, 0);
 
     if (inputVector.length() > 0) {
       if (inputState.forward && cameraDirection) {
-        this.calculateCameraRelativeMovement(
-          inputVector,
-          cameraDirection,
-          worldMovement
-        );
+        this.applyCameraDirection(inputVector, cameraDirection, velocity);
       } else {
-        this.calculatePlayerRelativeMovement(inputVector, worldMovement);
+        this.calculatePlayerRelativeVelocity(inputVector, velocity);
       }
     }
 
-    return worldMovement;
+    this.rigidBody.setLinvel(
+      velocity.normalize().multiply(new THREE.Vector3(10, 0, 10)),
+      true
+    );
   }
 
-  private calculateCameraRelativeMovement(
+  private applyCameraDirection(
     inputVector: THREE.Vector3,
     cameraDirection: THREE.Vector3,
-    worldMovement: THREE.Vector3
+    velocity: THREE.Vector3
   ): void {
-    // Get camera's forward and right vectors
     const cameraForward = cameraDirection.clone().normalize();
-    cameraForward.y = 0; // Keep movement on ground plane
+    cameraForward.y = 0;
     cameraForward.normalize();
 
     const cameraRight = new THREE.Vector3()
       .crossVectors(cameraForward, new THREE.Vector3(0, 1, 0))
       .normalize();
 
-    // Transform input to camera space
-    worldMovement.addScaledVector(cameraForward, -inputVector.z);
-    worldMovement.addScaledVector(cameraRight, inputVector.x);
+    velocity.addScaledVector(cameraForward, -inputVector.z);
+    velocity.addScaledVector(cameraRight, inputVector.x);
   }
 
-  private calculatePlayerRelativeMovement(
+  private calculatePlayerRelativeVelocity(
     inputVector: THREE.Vector3,
-    worldMovement: THREE.Vector3
+    velocity: THREE.Vector3
   ): void {
-    // Get player's current rotation
     const playerRotation = this.rigidBody.rotation();
     const playerQuaternion = new THREE.Quaternion(
       playerRotation.x,
@@ -88,36 +78,14 @@ export class Player extends BaseEntity {
       playerRotation.w
     );
 
-    // Get player's forward and right directions
-    const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+    const playerForward = new THREE.Vector3(1, 0, 0).applyQuaternion(
       playerQuaternion
     );
-    const playerRight = new THREE.Vector3(1, 0, 0).applyQuaternion(
+    const playerRight = new THREE.Vector3(0, 0, 1).applyQuaternion(
       playerQuaternion
     );
 
-    // Transform input to player space
-    worldMovement.addScaledVector(playerForward, inputVector.z);
-    worldMovement.addScaledVector(playerRight, -inputVector.x);
-  }
-
-  private applyMovement(worldMovement: THREE.Vector3): void {
-    if (worldMovement.length() > 0) {
-      // Normalize and apply speed
-      worldMovement.normalize().multiplyScalar(this.speed);
-
-      const currentVelocity = this.rigidBody.linvel();
-      this.rigidBody.setLinvel(
-        new RAPIER.Vector3(worldMovement.x, currentVelocity.y, worldMovement.z),
-        true
-      );
-    } else {
-      // No input, maintain current Y velocity but stop horizontal movement
-      const currentVelocity = this.rigidBody.linvel();
-      this.rigidBody.setLinvel(
-        new RAPIER.Vector3(0, currentVelocity.y, 0),
-        true
-      );
-    }
+    velocity.addScaledVector(playerForward, inputVector.z);
+    velocity.addScaledVector(playerRight, -inputVector.x);
   }
 }
