@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@dimforge/rapier3d-compat':
-        specifier: ^0.17.1
-        version: 0.17.1
+      '@dimforge/rapier3d':
+        specifier: ^0.18.0
+        version: 0.18.0
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -60,6 +60,9 @@ importers:
       vite:
         specifier: ^6.3.5
         version: 6.3.5
+      vite-plugin-wasm:
+        specifier: ^3.5.0
+        version: 3.5.0(vite@6.3.5)
 
 packages:
 
@@ -183,8 +186,8 @@ packages:
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
 
-  '@dimforge/rapier3d-compat@0.17.1':
-    resolution: {integrity: sha512-ZDBGwh/VoeLbyn+p9MFNN8bbuGzJHdhAk5nzuOj4ORA089RAVQhauWGZDgYNYRzyDgO27NvxcUclVoRDwhf2Qw==}
+  '@dimforge/rapier3d@0.18.0':
+    resolution: {integrity: sha512-Gzpn3E8jZUrFeGlxizc09hT6DbTI4RDSl8dpeiGYUy4OJA7dj/jrTGuhHWKddXh/6MCgYqmBwuADLJoqnBH1Hw==}
 
   '@esbuild/aix-ppc64@0.25.4':
     resolution: {integrity: sha512-1VCICWypeQKhVbE9oW/sJaAmjLxhVqacdkvPLEjwlttjfwENRSClS8EjBz0KzRyFSCPDIkuXW34Je/vk7zdB7Q==}
@@ -1121,6 +1124,11 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
+  vite-plugin-wasm@3.5.0:
+    resolution: {integrity: sha512-X5VWgCnqiQEGb+omhlBVsvTfxikKtoOgAzQ95+BZ8gQ+VfMHIjSHr0wyvXFQCa0eKQ0fKyaL0kWcEnYqBac4lQ==}
+    peerDependencies:
+      vite: ^2 || ^3 || ^4 || ^5 || ^6 || ^7
+
   vite@6.3.5:
     resolution: {integrity: sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1357,7 +1365,7 @@ snapshots:
 
   '@dimforge/rapier3d-compat@0.12.0': {}
 
-  '@dimforge/rapier3d-compat@0.17.1': {}
+  '@dimforge/rapier3d@0.18.0': {}
 
   '@esbuild/aix-ppc64@0.25.4':
     optional: true
@@ -2217,6 +2225,10 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  vite-plugin-wasm@3.5.0(vite@6.3.5):
+    dependencies:
+      vite: 6.3.5
 
   vite@6.3.5:
     dependencies:

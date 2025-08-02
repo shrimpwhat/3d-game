@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat";
+import RAPIER from "@dimforge/rapier3d";
 import { Player, Player2 } from "./entities";
 import { Camera } from "./camera";
 import { InputManager } from "./input/InputManager";
@@ -31,7 +31,7 @@ export class Game {
     this.renderer.setClearColor(0x87ceeb, 1); // Sky blue
 
     // Initialize input manager
-    this.inputManager = new InputManager(); // Initialize clock
+    this.inputManager = new InputManager();
     this.clock = new THREE.Clock();
 
     // Initialize camera
@@ -71,7 +71,8 @@ export class Game {
 
   private async initializePhysics(): Promise<void> {
     try {
-      await RAPIER.init();
+      // await RAPIER.init();
+      // const RAPIER = await import("@dimforge/rapier3d");
       this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
       // this.player = new Player(this.world, this.scene);
       this.player = new Player2(this.world, this.scene);
