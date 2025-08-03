@@ -21,6 +21,7 @@ export class BaseEntity {
     world.createCollider(colliderDesc, this.rigidBody);
 
     this.rigidBody.setEnabledRotations(false, true, false, true);
+
     this.speed = speed;
   }
 
@@ -66,10 +67,6 @@ export class BaseEntity {
       new RAPIER.Vector3(vx * this.speed, y, vz * this.speed),
       true
     );
-  }
-
-  public setSpeed(speed: number): void {
-    this.speed = speed;
   }
 
   public getPosition(): THREE.Vector3 {

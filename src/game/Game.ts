@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d";
-import { Player, Player2 } from "./entities";
+import { Player } from "./entities";
 import { Camera } from "./camera";
 import { InputManager } from "./input/InputManager";
 
@@ -9,7 +9,7 @@ export class Game {
   private renderer: THREE.WebGLRenderer;
   private camera: Camera;
   private world: RAPIER.World | null = null;
-  private player: Player2 | null = null;
+  private player: Player | null = null;
   private inputManager: InputManager;
   private clock: THREE.Clock;
   private isRunning: boolean = false;
@@ -24,7 +24,7 @@ export class Game {
       antialias: true,
       alpha: true,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(window.innerWidth, window.innerHeight, false);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -37,7 +37,6 @@ export class Game {
     // Initialize camera
     this.camera = new Camera(this.renderer.domElement);
 
-    // Set up basic scene immediately (without physics)
     this.setupBasicScene();
 
     // Handle window resize
@@ -45,6 +44,8 @@ export class Game {
 
     // Initialize Rapier and the rest of the game
     this.initializationPromise = this.initializePhysics();
+
+    this.renderer.setAnimationLoop(this.gameLoop.bind(this));
   }
 
   private setupBasicScene(): void {
@@ -57,7 +58,7 @@ export class Game {
     this.scene.add(ground);
 
     // Create grid helper
-    const gridHelper = new THREE.GridHelper(200, 200, 0x9d4b4b, 0x9d4b4b);
+    const gridHelper = new THREE.GridHelper(400, 30, 0x9d4b4b, 0x9d4b4b);
     gridHelper.position.y = 0.01;
     this.scene.add(gridHelper);
 
@@ -71,11 +72,8 @@ export class Game {
 
   private async initializePhysics(): Promise<void> {
     try {
-      // await RAPIER.init();
-      // const RAPIER = await import("@dimforge/rapier3d");
       this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
-      // this.player = new Player(this.world, this.scene);
-      this.player = new Player2(this.world, this.scene);
+      this.player = new Player(this.world, this.scene);
       this.setupScene();
 
       this.isInitialized = true;
@@ -114,9 +112,13 @@ export class Game {
   }
 
   private onWindowResize(): void {
-    this.camera.threeCamera.aspect = window.innerWidth / window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    this.camera.threeCamera.aspect = width / height;
     this.camera.threeCamera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height, false); // false prevents CSS resizing
+    this.renderer.setPixelRatio(window.devicePixelRatio);
   }
 
   public start(): void {
@@ -130,8 +132,6 @@ export class Game {
   private gameLoop(): void {
     if (!this.isRunning) return;
 
-    requestAnimationFrame(() => this.gameLoop());
-
     const deltaTime = this.clock.getDelta(); // Always render the scene, even if not fully initialized
     if (this.isInitialized && this.world && this.player) {
       // Update physics
@@ -142,11 +142,6 @@ export class Game {
 
       // Update player with camera direction for relative movement
       const cameraDirection = this.camera.getForwardDirection();
-      // this.player.update(
-      //   deltaTime,
-      //   this.inputManager.getInputState(),
-      //   cameraDirection
-      // );
       this.player.updatePlayer(
         this.inputManager.getInputState(),
         cameraDirection

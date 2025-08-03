@@ -1,43 +1,19 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d";
 import { type InputState } from "../input/InputManager";
+import { BaseEntity } from "./BaseEntity";
 
-export class Player {
-  private mesh: THREE.Mesh;
-  private rigidBody: RAPIER.RigidBody;
-  private speed: number = 5;
-
-  constructor(world: RAPIER.World, scene: THREE.Scene) {
-    // Create visual representation
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff8800 });
-    this.mesh = new THREE.Mesh(geometry, material);
-    this.mesh.castShadow = true;
-    this.mesh.userData = { type: "player" };
-    scene.add(this.mesh);
-
-    // Create physics body
-    const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-    rigidBodyDesc.setTranslation(0, 0.5, 0);
-    this.rigidBody = world.createRigidBody(rigidBodyDesc); // Create collider
-    const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
-    world.createCollider(colliderDesc, this.rigidBody);
-
-    this.rigidBody.setEnabledRotations(false, true, false, true);
+export class Player extends BaseEntity {
+  constructor(world: RAPIER.World, scene: THREE.Scene, speed = 10) {
+    super(world, scene, speed);
   }
-  public update(
-    _deltaTime: number,
+
+  public updatePlayer(
     inputState: InputState,
-    cameraDirection?: THREE.Vector3
+    cameraDirection: THREE.Vector3
   ): void {
-    const inputVector = this.collectInput(inputState);
-    const worldMovement = this.calculateMovement(
-      inputVector,
-      inputState,
-      cameraDirection
-    );
-    this.applyMovement(worldMovement);
-    this.updateMeshTransform();
+    this.applyVelocity(inputState, cameraDirection);
+    super.update();
   }
 
   private collectInput(inputState: InputState): THREE.Vector3 {
@@ -51,81 +27,52 @@ export class Player {
     return inputVector;
   }
 
-  private calculateMovement(
-    inputVector: THREE.Vector3,
+  private applyVelocity(
     inputState: InputState,
     cameraDirection?: THREE.Vector3
-  ): THREE.Vector3 {
-    const worldMovement = new THREE.Vector3(0, 0, 0);
+  ): void {
+    const inputVector = this.collectInput(inputState);
+
+    const velocity = new THREE.Vector3(0, 0, 0);
 
     if (inputVector.length() > 0) {
       if (inputState.forward && cameraDirection) {
-        this.calculateCameraRelativeMovement(
-          inputVector,
-          cameraDirection,
-          worldMovement
-        );
-        this.rotatePlayerToMovementDirection(worldMovement);
+        this.applyCameraDirection(inputVector, cameraDirection, velocity);
       } else {
-        this.calculatePlayerRelativeMovement(inputVector, worldMovement);
+        this.calculatePlayerRelativeVelocity(inputVector, velocity);
       }
     }
 
-    return worldMovement;
+    this.rigidBody.setLinvel(
+      velocity.normalize().multiplyScalar(this.speed),
+      true
+    );
   }
 
-  private calculateCameraRelativeMovement(
+  private applyCameraDirection(
     inputVector: THREE.Vector3,
     cameraDirection: THREE.Vector3,
-    worldMovement: THREE.Vector3
+    velocity: THREE.Vector3
   ): void {
-    // Get camera's forward and right vectors
     const cameraForward = cameraDirection.clone().normalize();
-    cameraForward.y = 0; // Keep movement on ground plane
+    cameraForward.y = 0;
     cameraForward.normalize();
 
     const cameraRight = new THREE.Vector3()
       .crossVectors(cameraForward, new THREE.Vector3(0, 1, 0))
       .normalize();
 
-    // Transform input to camera space
-    worldMovement.addScaledVector(cameraForward, -inputVector.z);
-    worldMovement.addScaledVector(cameraRight, inputVector.x);
-  }
+    velocity.addScaledVector(cameraForward, -inputVector.z);
+    velocity.addScaledVector(cameraRight, inputVector.x);
 
-  private calculatePlayerRelativeMovement(
-    inputVector: THREE.Vector3,
-    worldMovement: THREE.Vector3
-  ): void {
-    // Get player's current rotation
-    const playerRotation = this.rigidBody.rotation();
-    const playerQuaternion = new THREE.Quaternion(
-      playerRotation.x,
-      playerRotation.y,
-      playerRotation.z,
-      playerRotation.w
-    );
-
-    // Get player's forward and right directions
-    const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(
-      playerQuaternion
-    );
-    const playerRight = new THREE.Vector3(1, 0, 0).applyQuaternion(
-      playerQuaternion
-    );
-
-    // Transform input to player space
-    worldMovement.addScaledVector(playerForward, inputVector.z);
-    worldMovement.addScaledVector(playerRight, -inputVector.x);
-  }
-
-  private rotatePlayerToMovementDirection(worldMovement: THREE.Vector3): void {
-    if (worldMovement.length() > 0) {
-      const movementDirection = worldMovement.clone().normalize();
+    // Rotate player to face movement direction
+    if (velocity.length() > 0) {
+      const movementDirection = velocity.clone().normalize();
       const targetRotation = Math.atan2(
         movementDirection.x,
         movementDirection.z
       );
+
       this.rigidBody.setRotation(
         new RAPIER.Quaternion(
           0,
@@ -138,42 +85,28 @@ export class Player {
     }
   }
 
-  private applyMovement(worldMovement: THREE.Vector3): void {
-    if (worldMovement.length() > 0) {
-      // Normalize and apply speed
-      worldMovement.normalize().multiplyScalar(this.speed);
+  private calculatePlayerRelativeVelocity(
+    inputVector: THREE.Vector3,
+    velocity: THREE.Vector3
+  ): void {
+    const playerRotation = this.rigidBody.rotation();
+    const playerQuaternion = new THREE.Quaternion(
+      playerRotation.x,
+      playerRotation.y,
+      playerRotation.z,
+      playerRotation.w
+    );
 
-      const currentVelocity = this.rigidBody.linvel();
-      this.rigidBody.setLinvel(
-        new RAPIER.Vector3(worldMovement.x, currentVelocity.y, worldMovement.z),
-        true
-      );
-    } else {
-      // No input, maintain current Y velocity but stop horizontal movement
-      const currentVelocity = this.rigidBody.linvel();
-      this.rigidBody.setLinvel(
-        new RAPIER.Vector3(0, currentVelocity.y, 0),
-        true
-      );
-    }
-  }
+    // Use consistent coordinate system: forward is (0, 0, -1), right is (-1, 0, 0)
+    const playerForward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+      playerQuaternion
+    );
+    const playerRight = new THREE.Vector3(-1, 0, 0).applyQuaternion(
+      playerQuaternion
+    );
 
-  private updateMeshTransform(): void {
-    // Update mesh position from physics body
-    const position = this.rigidBody.translation();
-    this.mesh.position.set(position.x, position.y, position.z);
-
-    // Update mesh rotation from physics body
-    const rotation = this.rigidBody.rotation();
-    this.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
-  }
-
-  public getPosition(): THREE.Vector3 {
-    const position = this.rigidBody.translation();
-    return new THREE.Vector3(position.x, position.y, position.z);
-  }
-
-  public getMesh(): THREE.Mesh {
-    return this.mesh;
+    // Apply input with consistent mapping
+    velocity.addScaledVector(playerForward, inputVector.z);
+    velocity.addScaledVector(playerRight, inputVector.x);
   }
 }
