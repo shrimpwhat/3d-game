@@ -15,7 +15,7 @@ export class BaseEntity {
     scene.add(this.mesh);
 
     const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-    rigidBodyDesc.setTranslation(0, 0.5, 0); // whats it?
+    rigidBodyDesc.setTranslation(0, 0.5, 0);
     this.rigidBody = world.createRigidBody(rigidBodyDesc);
     const colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
     world.createCollider(colliderDesc, this.rigidBody);

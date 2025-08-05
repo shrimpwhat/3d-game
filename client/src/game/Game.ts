@@ -50,7 +50,7 @@ export class Game {
 
   private setupBasicScene(): void {
     // Create ground (visual only, no physics yet)
-    const groundGeometry = new THREE.PlaneGeometry(2000, 2000);
+    const groundGeometry = new THREE.PlaneGeometry(400, 400);
     const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
@@ -86,9 +86,9 @@ export class Game {
     if (!this.world) return;
 
     // Create physics ground (visual ground already exists)
-    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(1000, 0.1, 1000);
+    const groundColliderDesc = RAPIER.ColliderDesc.cuboid(400, 0, 400);
     const groundCollider = this.world.createCollider(groundColliderDesc);
-    groundCollider.setTranslation(new RAPIER.Vector3(0, -0.1, 0));
+    groundCollider.setTranslation(new RAPIER.Vector3(0, 0, 0));
   }
 
   private setupLighting(): void {

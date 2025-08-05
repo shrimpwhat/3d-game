@@ -1,0 +1,15 @@
+{
+  "entities": {
+    "base": {
+      "speed": 5,
+      "hp": 100
+    }
+  },
+  "map": {
+    "groundCollider": {
+      "x": 400,
+      "y": 0,
+      "z": 400
+    }
+  }
+}
