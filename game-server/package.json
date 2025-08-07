@@ -14,8 +14,9 @@
   },
   "type": "module",
   "dependencies": {
-    "@dimforge/rapier3d": "^0.18.0",
+    "@dimforge/rapier3d-compat-compat": "^0.18.0",
     "nanoid": "^5.1.5",
+    "redis": "^5.8.0",
     "three": "^0.179.1"
   }
 }

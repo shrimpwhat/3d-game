@@ -1,4 +1,4 @@
-import RAPIER from "@dimforge/rapier3d";
+import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 import GAME_CONFIG from "../../../config.json";
 
@@ -30,9 +30,9 @@ export class BaseEntity {
     this.rigidBody.setEnabledRotations(false, true, false, true);
   }
 
-  protected update(): void {}
+  public update(): void {}
 
-  private rotateToMovementDirection(): void {
+  public rotateToMovementDirection(): void {
     const { x, y, z } = this.rigidBody.linvel();
     const linvel = new THREE.Vector3(x, y, z);
 
@@ -57,5 +57,16 @@ export class BaseEntity {
 
   getPosition() {
     return this.rigidBody.translation();
+  }
+
+  setLinvel({ x, y, z }: THREE.Vector3Like) {
+    this.rigidBody.setLinvel(
+      {
+        x: x * this.speed,
+        y,
+        z: z * this.speed,
+      },
+      true
+    );
   }
 }

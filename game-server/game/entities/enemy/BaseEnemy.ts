@@ -1,4 +1,4 @@
-import RAPIER from "@dimforge/rapier3d";
+import RAPIER from "@dimforge/rapier3d-compat";
 import { BaseEntity } from "../BaseEntity";
 import type { Player } from "../Player";
 import * as THREE from "three";
@@ -17,15 +17,10 @@ export class BaseEnemy extends BaseEntity {
 
     if (nearestPlayer) {
       const { direction } = nearestPlayer;
-
-      this.rigidBody.setLinvel(
-        {
-          x: direction.x * this.speed,
-          y: this.rigidBody.linvel().y,
-          z: direction.z * this.speed,
-        },
-        true
-      );
+      this.setLinvel(direction);
+      this.rotateToMovementDirection();
+    } else {
+      this.setLinvel({ x: 0, y: 0, z: 0 });
     }
 
     super.update();

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d";
+import RAPIER from "@dimforge/rapier3d-compat";
 import { Player } from "./entities";
 import { Camera } from "./Camera";
 import { InputManager } from "./input/InputManager";
