@@ -3,10 +3,10 @@ import * as THREE from "three";
 import GAME_CONFIG from "../../../config.json";
 
 export class BaseEntity {
+  readonly id: string;
   protected rigidBody: RAPIER.RigidBody;
   protected speed: number;
   protected hp: number;
-  protected id: string;
 
   constructor(
     id: string,
@@ -68,5 +68,9 @@ export class BaseEntity {
       },
       true
     );
+  }
+
+  setRotation(rotation: RAPIER.Rotation) {
+    this.rigidBody.setRotation(rotation, true);
   }
 }

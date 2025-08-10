@@ -1,22 +1,22 @@
 {
   "name": "3d-game-server",
   "module": "index.ts",
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/three": "^0.179.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
   "private": true,
   "scripts": {
     "dev": "bun --watch index.ts"
   },
   "type": "module",
   "dependencies": {
-    "@dimforge/rapier3d-compat-compat": "^0.18.0",
+    "@dimforge/rapier3d-compat": "0.18.0",
     "nanoid": "^5.1.5",
     "redis": "^5.8.0",
     "three": "^0.179.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/three": "^0.179.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

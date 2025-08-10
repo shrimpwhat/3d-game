@@ -17,7 +17,6 @@ export class Game {
   private initializationPromise: Promise<void>;
 
   constructor(canvas: HTMLCanvasElement) {
-    // Initialize Three.js
     this.scene = new THREE.Scene();
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -30,21 +29,15 @@ export class Game {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0x87ceeb, 1); // Sky blue
 
-    // Initialize input manager
     this.inputManager = new InputManager();
     this.clock = new THREE.Clock();
 
-    // Initialize camera
     this.camera = new Camera(this.renderer.domElement);
 
     this.setupBasicScene();
-
-    // Handle window resize
-    window.addEventListener("resize", this.onWindowResize.bind(this));
-
-    // Initialize Rapier and the rest of the game
     this.initializationPromise = this.initializePhysics();
 
+    window.addEventListener("resize", this.onWindowResize.bind(this));
     this.renderer.setAnimationLoop(this.gameLoop.bind(this));
   }
 

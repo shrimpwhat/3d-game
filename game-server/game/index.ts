@@ -1,17 +1,28 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import GAME_CONFIG from "../../config.json";
 import type { BaseEntity } from "./entities/BaseEntity";
+import { Player } from "./entities/Player";
+import type {
+  BaseEvent,
+  PlayerMoveEvent,
+  SpawnPlayerEvent,
+} from "../../shared/types";
 
 export default class Game {
   private world: RAPIER.World;
-  private entities: Map<string, BaseEntity> = new Map();
+  private entities: BaseEntity[] = [];
+  private idToIndex: Map<string, number> = new Map();
+  private players: Player[] = [];
 
-  constructor(publish: (data: unknown) => void) {
+  private publish: (data: BaseEvent[]) => void;
+
+  constructor(publish: Game["publish"]) {
+    this.publish = publish;
     this.world = new RAPIER.World(new RAPIER.Vector3(0.0, -9.81, 0.0));
     this.createGround();
 
-    setInterval(this.gameLoop.bind(this), 6.94);
-    setInterval(() => publish(this.entities), 50);
+    setInterval(this.gameLoop.bind(this), 16);
+    // setInterval(() => publish(this.entities), 100);
   }
 
   private createGround() {
@@ -32,5 +43,20 @@ export default class Game {
     }
   }
 
-  spawnPlayer() {}
+  private publishUpdates() {}
+
+  spawnPlayer({ id }: SpawnPlayerEvent["data"]) {
+    const player = new Player(id, this.world);
+    this.players.push(player);
+    const index = this.entities.push(player) - 1;
+    this.idToIndex.set(id, index);
+  }
+
+  movePlayer({ id, velocity, rotation }: PlayerMoveEvent["data"]) {
+    const player = this.players.find((player) => player.id === id);
+    if (!player) return;
+
+    player.setLinvel(velocity);
+    player.setRotation(rotation);
+  }
 }

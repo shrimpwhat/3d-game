@@ -1,10 +1,14 @@
 import path from "path";
 import Game from "./game";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { Worker, parentPort } from "worker_threads";
-import { EventTypeMap, type BaseEvent } from "../shared/types";
+import { EventTypeMap, type GameEvent } from "../shared/types";
+import type { MessageEvent } from "bun";
 
-const redisWorker = new Worker(path.resolve(__dirname, "redis", "index.ts"));
+declare const self: Worker;
+
+const redisWorker = new Worker(path.resolve(__dirname, "redis", "index.ts"), {
+  smol: true,
+});
 
 await RAPIER.init();
 const game = new Game(publish);
@@ -13,10 +17,13 @@ function publish(data: unknown) {
   redisWorker.postMessage(data);
 }
 
-parentPort?.on("message", (event: BaseEvent) => {
-  switch (event.type) {
-    case EventTypeMap.INIT_PLAYER:
-      game.spawnPlayer();
+self.onmessage = ({ data: { type, data } }: MessageEvent<GameEvent>) => {
+  switch (type) {
+    case EventTypeMap.SPAWN_PLAYER:
+      game.spawnPlayer(data);
+      break;
+    case EventTypeMap.PLAYER_MOVE:
+      game.spawnPlayer(data);
       break;
   }
-});
+};
