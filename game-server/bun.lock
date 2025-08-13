@@ -4,7 +4,7 @@
     "": {
       "name": "3d-game-server",
       "dependencies": {
-        "@dimforge/rapier3d-compat": "0.18.0",
+        "@dimforge/rapier3d-compat": "0.18.2",
         "nanoid": "^5.1.5",
         "redis": "^5.8.0",
         "three": "^0.179.1",
@@ -19,7 +19,7 @@
     },
   },
   "packages": {
-    "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.18.0", "", {}, "sha512-/H92Afd3RJ2PIx8TKtSG8Apb+hmnOKL1kJKFfTGVpab1ujYm3nhub3oTfC3mVlWoRx+yURxYjddjAe3cgP3tgw=="],
+    "@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.18.2", "", {}, "sha512-DTXrOsn3ra9ZonB+VyqJc16xnRXWsHVa5FK230Z+R1PJ7q8oSRmWQ+AU6e+IJYBHxkM0a5QVDqd729DyeEhHPA=="],
 
     "@redis/bloom": ["@redis/bloom@5.8.0", "", { "peerDependencies": { "@redis/client": "^5.8.0" } }, "sha512-kpKZzAAjGiGYn88Bqq6+ozxPg6kGYWRZH9vnOwGcoSCbrW14SZpZVMYMFSio8FH9ZJUdUcmT/RLGlA1W1t0UWQ=="],
 

@@ -2,11 +2,13 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import GAME_CONFIG from "../../config.json";
 import type { BaseEntity } from "./entities/BaseEntity";
 import { Player } from "./entities/Player";
-import type {
-  BaseEvent,
+import {
+  type GameEvent,
   PlayerMoveEvent,
-  SpawnPlayerEvent,
-} from "../../shared/types";
+  PlayerSpawnEvent,
+  SnapshotEvent,
+} from "../../shared/events";
+import type { Entity } from "../../shared/types";
 
 export default class Game {
   private world: RAPIER.World;
@@ -14,7 +16,8 @@ export default class Game {
   private idToIndex: Map<string, number> = new Map();
   private players: Player[] = [];
 
-  private publish: (data: BaseEvent[]) => void;
+  private eventsQueue: GameEvent[] = [];
+  private publish: (events: GameEvent[]) => void;
 
   constructor(publish: Game["publish"]) {
     this.publish = publish;
@@ -22,7 +25,8 @@ export default class Game {
     this.createGround();
 
     setInterval(this.gameLoop.bind(this), 16);
-    // setInterval(() => publish(this.entities), 100);
+    setInterval(this.publishEvents.bind(this), 100);
+    setInterval(this.publishSnapshot.bind(this), 500);
   }
 
   private createGround() {
@@ -43,13 +47,29 @@ export default class Game {
     }
   }
 
-  private publishUpdates() {}
+  private publishEvents() {
+    this.publish(this.eventsQueue);
+    this.eventsQueue.length = 0;
+  }
 
-  spawnPlayer({ id }: SpawnPlayerEvent["data"]) {
+  private publishSnapshot() {
+    const payload: Entity[] = this.entities.map((entity) => ({
+      id: entity.id,
+      position: entity.getPosition(),
+      velocity: entity.getVelocity(),
+      rotation: entity.getRotation(),
+    }));
+
+    this.publish([new SnapshotEvent({ entities: payload })]);
+  }
+
+  spawnPlayer({ id }: PlayerSpawnEvent["data"]) {
     const player = new Player(id, this.world);
     this.players.push(player);
     const index = this.entities.push(player) - 1;
     this.idToIndex.set(id, index);
+
+    this.eventsQueue.push(new PlayerSpawnEvent({ id }));
   }
 
   movePlayer({ id, velocity, rotation }: PlayerMoveEvent["data"]) {
@@ -58,5 +78,7 @@ export default class Game {
 
     player.setLinvel(velocity);
     player.setRotation(rotation);
+
+    this.eventsQueue.push(new PlayerMoveEvent({ id, velocity, rotation }));
   }
 }

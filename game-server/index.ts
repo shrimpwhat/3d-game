@@ -1,14 +1,12 @@
-import path from "path";
 import Game from "./game";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { EventTypeMap, type GameEvent } from "../shared/types";
+import { EventTypeMap } from "../shared/types";
 import type { MessageEvent } from "bun";
+import type { GameEvent } from "../shared/events";
 
 declare const self: Worker;
 
-const redisWorker = new Worker(path.resolve(__dirname, "redis", "index.ts"), {
-  smol: true,
-});
+const redisWorker = new Worker("redis/index.ts");
 
 await RAPIER.init();
 const game = new Game(publish);

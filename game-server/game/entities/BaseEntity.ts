@@ -55,10 +55,6 @@ export class BaseEntity {
     }
   }
 
-  getPosition() {
-    return this.rigidBody.translation();
-  }
-
   setLinvel({ x, y, z }: THREE.Vector3Like) {
     this.rigidBody.setLinvel(
       {
@@ -72,5 +68,17 @@ export class BaseEntity {
 
   setRotation(rotation: RAPIER.Rotation) {
     this.rigidBody.setRotation(rotation, true);
+  }
+
+  getPosition() {
+    return this.rigidBody.translation();
+  }
+
+  getVelocity() {
+    return this.rigidBody.linvel();
+  }
+
+  getRotation() {
+    return this.rigidBody.rotation();
   }
 }

@@ -1,30 +1,17 @@
-type Vector3 = { x: number; y: number; z: number };
-type Vector4 = Vector3 & { w: number };
+export type Vector3 = { x: number; y: number; z: number };
+export type Vector4 = Vector3 & { w: number };
 
-export type EventType = 0 | 1;
+export type EventType = 0 | 1 | 2;
 
 export const EventTypeMap = {
   SPAWN_PLAYER: 0,
   PLAYER_MOVE: 1,
+  SNAPSHOT_EVENT: 2,
 } as const;
 
-export interface BaseEvent {
-  type: EventType;
-  data: any;
+export interface Entity {
+  id: string;
+  position: Vector3;
+  velocity: Vector3;
+  rotation: Vector4;
 }
-
-export interface SpawnPlayerEvent extends BaseEvent {
-  type: 0;
-  data: { id: string };
-}
-
-export interface PlayerMoveEvent extends BaseEvent {
-  type: 1;
-  data: {
-    id: string;
-    velocity: Vector3;
-    rotation: Vector4;
-  };
-}
-
-export type GameEvent = SpawnPlayerEvent | PlayerMoveEvent;

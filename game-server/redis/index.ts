@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { type BaseEvent } from "../../shared/types";
+import type { BaseEvent } from "../../shared/events";
 
 declare const self: Worker;
 
@@ -10,6 +10,7 @@ await publisher.connect();
 await subscriber.connect();
 
 self.onmessage = ({ data }) => {
+  console.log(data);
   publisher.publish("server-events", JSON.stringify(data));
 };
 
