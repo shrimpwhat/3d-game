@@ -1,5 +1,4 @@
 import { createClient } from "redis";
-import type { BaseEvent } from "../../shared/events";
 
 declare const self: Worker;
 
@@ -16,7 +15,7 @@ self.onmessage = ({ data }) => {
 
 subscriber.subscribe("client-events", (message) => {
   try {
-    const payload: BaseEvent = JSON.parse(message);
+    const payload = JSON.parse(message);
     postMessage(payload);
   } catch {}
 });
